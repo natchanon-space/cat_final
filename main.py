@@ -32,7 +32,7 @@ class Strategy():
 
     def Fast(self, fruit):
         def update():
-            fruit.x -= FRUIT_SLOW_SPEED
+            fruit.x -= FRUIT_FAST_SPEED
 
             if fruit.x < -30:
                 fruit.to_be_deleted = True
