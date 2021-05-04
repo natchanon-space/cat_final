@@ -20,12 +20,8 @@ class Fruit(Sprite):
         pass
 
 
-class FruitFactory():
-
-    def SlowFruit(self, app, x, y):
-        image = "images/apple.png"
-        fruit = Fruit(app, image, x, y)
-
+class Strategy():
+    def Slow(self, fruit):
         def update():
             fruit.x -= FRUIT_SLOW_SPEED
             if fruit.x < -30:
@@ -34,11 +30,7 @@ class FruitFactory():
         fruit.update = update
         return fruit
 
-    def FastFruit(self, app, x, y):
-        image = "images/banana.png"
-        fruit = Fruit(app, image, x, y)
-        fruit.value = 2
-
+    def Fast(self, fruit):
         def update():
             fruit.x -= FRUIT_SLOW_SPEED
 
@@ -48,10 +40,7 @@ class FruitFactory():
         fruit.update = update
         return fruit
 
-    def SlideFruit(self, app, x, y):
-        image = "images/cherry.png"
-        fruit = Fruit(app, image, x, y)
-        fruit.value = 3
+    def Slide(self, fruit):
         fruit.direction = randint(0,1)*2 - 1
 
         def update():
@@ -63,11 +52,8 @@ class FruitFactory():
         
         fruit.update = update
         return fruit
-
-    def CurvyFruit(self, app, x, y):
-        image = "images/pear.png"
-        fruit = Fruit(app, image, x, y)
-        fruit.value = 4
+        
+    def Curvy(self, fruit):
         fruit.t = randint(0,360) * 2 * math.pi / 360
 
         def update():
@@ -80,6 +66,21 @@ class FruitFactory():
 
         fruit.update = update
         return fruit
+
+
+class FruitFactory():
+
+    product = {"apple": [1, Strategy().Slow, "images/apple.png"],
+               "banana": [2, Strategy().Fast, "images/banana.png"],
+               "cherry": [3, Strategy().Slide, "images/cherry.png"],
+               "pear": [4, Strategy().Curvy, "images/pear.png"]}
+
+    def create(self, app, param, x, y):
+        val, strat, image = self.product[param]
+        fruit = Fruit(app, image, x, y)
+        fruit.value = val
+        
+        return strat(fruit)
 
 
 class Cat(Sprite):
@@ -123,13 +124,17 @@ class CatGame(GameApp):
             p = random()
             y = randint(50, CANVAS_HEIGHT - 50)
             if p <= 0.3:
-                new_fruit = self.fac.SlowFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.create(self, 'apple', CANVAS_WIDTH, y)
+                # new_fruit = self.fac.SlowFruit(self, CANVAS_WIDTH, y)
             elif p <= 0.6:
-                new_fruit = self.fac.FastFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.create(self, 'banana', CANVAS_WIDTH, y)
+                # new_fruit = self.fac.FastFruit(self, CANVAS_WIDTH, y)
             elif p <= 0.8:
-                new_fruit = self.fac.SlideFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.create(self, 'cherry', CANVAS_WIDTH, y)
+                # new_fruit = self.fac.SlideFruit(self, CANVAS_WIDTH, y)
             else:
-                new_fruit = self.fac.CurvyFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.create(self, "pear", CANVAS_WIDTH, y)
+                # new_fruit = self.fac.CurvyFruit(self, CANVAS_WIDTH, y)
 
             self.fruits.append(new_fruit)
 
