@@ -7,61 +7,79 @@ from gamelib import Sprite, GameApp, Text
 
 from consts import *
 
-class SlowFruit(Sprite):
-    def __init__(self, app, x, y):
-        super().__init__(app, 'images/apple.png', x, y)
+class Fruit(Sprite):
+
+    value = 1
+
+    def __init__(self, app, image_filename, x, y):
+        super().__init__(app, image_filename, x, y)
 
         self.app = app
 
     def update(self):
-        self.x -= FRUIT_SLOW_SPEED
-
-        if self.x < -30:
-            self.to_be_deleted = True
+        pass
 
 
-class FastFruit(Sprite):
-    def __init__(self, app, x, y):
-        super().__init__(app, 'images/banana.png', x, y)
+class FruitFactory():
 
-        self.app = app
+    def SlowFruit(self, app, x, y):
+        image = "images/apple.png"
+        fruit = Fruit(app, image, x, y)
 
-    def update(self):
-        self.x -= FRUIT_FAST_SPEED
+        def update():
+            fruit.x -= FRUIT_SLOW_SPEED
+            if fruit.x < -30:
+                fruit.to_be_deleted = True
 
-        if self.x < -30:
-            self.to_be_deleted = True
+        fruit.update = update
+        return fruit
 
+    def FastFruit(self, app, x, y):
+        image = "images/banana.png"
+        fruit = Fruit(app, image, x, y)
+        fruit.value = 2
 
-class SlideFruit(Sprite):
-    def __init__(self, app, x, y):
-        super().__init__(app, 'images/cherry.png', x, y)
+        def update():
+            fruit.x -= FRUIT_SLOW_SPEED
 
-        self.app = app
-        self.direction = randint(0,1)*2 - 1
+            if fruit.x < -30:
+                fruit.to_be_deleted = True
+        
+        fruit.update = update
+        return fruit
 
-    def update(self):
-        self.x -= FRUIT_FAST_SPEED
-        self.y += self.direction * 5
+    def SlideFruit(self, app, x, y):
+        image = "images/cherry.png"
+        fruit = Fruit(app, image, x, y)
+        fruit.value = 3
+        fruit.direction = randint(0,1)*2 - 1
 
-        if self.x < -30:
-            self.to_be_deleted = True
+        def update():
+            fruit.x -= FRUIT_FAST_SPEED
+            fruit.y += fruit.direction * 5
 
+            if fruit.x < -30:
+                fruit.to_be_deleted = True
+        
+        fruit.update = update
+        return fruit
 
-class CurvyFruit(Sprite):
-    def __init__(self, app, x, y):
-        super().__init__(app, 'images/pear.png', x, y)
+    def CurvyFruit(self, app, x, y):
+        image = "images/pear.png"
+        fruit = Fruit(app, image, x, y)
+        fruit.value = 4
+        fruit.t = randint(0,360) * 2 * math.pi / 360
 
-        self.app = app
-        self.t = randint(0,360) * 2 * math.pi / 360
+        def update():
+            fruit.x -= FRUIT_SLOW_SPEED * 1.2
+            fruit.t += 1
+            fruit.y += math.sin(fruit.t*0.08)*10
 
-    def update(self):
-        self.x -= FRUIT_SLOW_SPEED * 1.2
-        self.t += 1
-        self.y += math.sin(self.t*0.08)*10
+            if fruit.x < -30:
+                fruit.to_be_deleted = True
 
-        if self.x < -30:
-            self.to_be_deleted = True
+        fruit.update = update
+        return fruit
 
 
 class Cat(Sprite):
@@ -82,7 +100,7 @@ class Cat(Sprite):
     def check_collision(self, fruit):
         if self.distance_to(fruit) <= CAT_CATCH_DISTANCE:
             fruit.to_be_deleted = True
-            self.app.score += 1
+            self.app.score += fruit.value
             self.app.update_score()
 
 
@@ -95,6 +113,8 @@ class CatGame(GameApp):
         self.score_text = Text(self, 'Score: 0', 100, 40)
         self.fruits = []
 
+        self.fac = FruitFactory()
+
     def update_score(self):
         self.score_text.set_text('Score: ' + str(self.score))
 
@@ -103,13 +123,13 @@ class CatGame(GameApp):
             p = random()
             y = randint(50, CANVAS_HEIGHT - 50)
             if p <= 0.3:
-                new_fruit = SlowFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.SlowFruit(self, CANVAS_WIDTH, y)
             elif p <= 0.6:
-                new_fruit = FastFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.FastFruit(self, CANVAS_WIDTH, y)
             elif p <= 0.8:
-                new_fruit = SlideFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.SlideFruit(self, CANVAS_WIDTH, y)
             else:
-                new_fruit = CurvyFruit(self, CANVAS_WIDTH, y)
+                new_fruit = self.fac.CurvyFruit(self, CANVAS_WIDTH, y)
 
             self.fruits.append(new_fruit)
 
